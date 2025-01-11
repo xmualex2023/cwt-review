@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/xmualex2023/i18n-translation/internal/apiserver/model"
@@ -11,11 +12,11 @@ import (
 )
 
 var (
-	ErrTaskNotFound = errors.New("任务不存在")
-	ErrInvalidTask  = errors.New("无效的任务")
+	ErrTaskNotFound = errors.New("task not found")
+	ErrInvalidTask  = errors.New("invalid task")
 )
 
-// CreateTask 创建翻译任务
+// CreateTask create translation task
 func (s *Service) CreateTask(ctx context.Context, req *model.CreateTaskRequest, userID primitive.ObjectID) (*model.TaskResponse, error) {
 	task := &model.Task{
 		UserID:        userID,
@@ -37,28 +38,25 @@ func (s *Service) CreateTask(ctx context.Context, req *model.CreateTaskRequest, 
 	}, nil
 }
 
-// ExecuteTranslation 执行翻译任务
+// ExecuteTranslation execute translation task
 func (s *Service) ExecuteTranslation(ctx context.Context, taskID string) error {
 	id, err := primitive.ObjectIDFromHex(taskID)
 	if err != nil {
-		return ErrInvalidTask
+		return fmt.Errorf("invalid task id: %s, error: %w", taskID, err)
 	}
 
 	task, err := s.repo.GetTask(ctx, id)
 	if err != nil {
-		return err
-	}
-	if task == nil {
-		return ErrTaskNotFound
+		return fmt.Errorf("failed to get task, id: %s, error: %w", taskID, err)
 	}
 
-	// 更新任务状态为处理中
+	// update task status to processing
 	task.Status = model.TaskStatusProcessing
 	if err := s.repo.UpdateTask(ctx, task); err != nil {
-		return err
+		return fmt.Errorf("failed to update task status, id: %s, error: %w", taskID, err)
 	}
 
-	// 创建翻译任务并加入队列
+	// create translation task and enqueue
 	translationTask := &model.TranslationTask{
 		ID:            task.ID.Hex(),
 		UserID:        task.UserID.Hex(),
@@ -70,15 +68,17 @@ func (s *Service) ExecuteTranslation(ctx context.Context, taskID string) error {
 
 	if err := s.queue.Enqueue(ctx, translationTask); err != nil {
 		task.Status = model.TaskStatusFailed
-		task.Error = "加入队列失败"
-		_ = s.repo.UpdateTask(ctx, task)
-		return err
+		task.Error = fmt.Sprintf("failed to enqueue, error: %v", err)
+		if err := s.repo.UpdateTask(ctx, task); err != nil {
+			return fmt.Errorf("failed to update task status, id: %s, error: %w", taskID, err)
+		}
+		return fmt.Errorf("failed to enqueue, id: %s, error: %w", taskID, err)
 	}
 
 	return nil
 }
 
-// GetTaskStatus 获取任务状态
+// GetTaskStatus get task status
 func (s *Service) GetTaskStatus(ctx context.Context, taskID string) (*model.TaskResponse, error) {
 	id, err := primitive.ObjectIDFromHex(taskID)
 	if err != nil {
@@ -88,9 +88,6 @@ func (s *Service) GetTaskStatus(ctx context.Context, taskID string) (*model.Task
 	task, err := s.repo.GetTask(ctx, id)
 	if err != nil {
 		return nil, err
-	}
-	if task == nil {
-		return nil, ErrTaskNotFound
 	}
 
 	return &model.TaskResponse{
@@ -102,28 +99,25 @@ func (s *Service) GetTaskStatus(ctx context.Context, taskID string) (*model.Task
 	}, nil
 }
 
-// HandleTranslationTask 处理翻译任务
+// HandleTranslationTask handle translation task
 func (s *Service) HandleTranslationTask(ctx context.Context, t queue.Task) error {
 	task, ok := t.(*model.TranslationTask)
 	if !ok {
-		return errors.New("无效的任务类型")
+		return fmt.Errorf("invalid task type, taskID: %v", t.GetID())
 	}
 
-	// 获取数据库中的任务
+	// get task from db
 	id, err := primitive.ObjectIDFromHex(task.ID)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid task id, taskID: %v, error: %w", task.ID, err)
 	}
 
 	dbTask, err := s.repo.GetTask(ctx, id)
 	if err != nil {
-		return err
-	}
-	if dbTask == nil {
-		return ErrTaskNotFound
+		return fmt.Errorf("failed to get task, id: %s, error: %w", task.ID, err)
 	}
 
-	// 执行翻译
+	// execute translation
 	translatedText, err := s.translator.Translate(ctx, task.SourceContent, task.SourceLang, task.TargetLang)
 	if err != nil {
 		dbTask.Status = model.TaskStatusFailed
@@ -133,31 +127,31 @@ func (s *Service) HandleTranslationTask(ctx context.Context, t queue.Task) error
 		dbTask.ResultContent = translatedText
 	}
 
-	// 更新任务状态
+	// update task status
 	return s.repo.UpdateTask(ctx, dbTask)
 }
 
-// GetTranslation 获取翻译结果
+// GetTranslation get translation result
 func (s *Service) GetTranslation(ctx context.Context, taskID string) (string, error) {
 	id, err := primitive.ObjectIDFromHex(taskID)
 	if err != nil {
-		return "", ErrInvalidTask
+		return "", fmt.Errorf("invalid task id, taskID: %v, error: %w", taskID, err)
 	}
 
 	task, err := s.repo.GetTask(ctx, id)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get task, id: %s, error: %w", taskID, err)
 	}
 	if task == nil {
-		return "", ErrTaskNotFound
+		return "", fmt.Errorf("task not found, id: %s", taskID)
 	}
 
 	if task.Status != model.TaskStatusCompleted {
-		return "", errors.New("任务未完成")
+		return "", fmt.Errorf("task not completed, id: %s", taskID)
 	}
 
 	if task.ResultContent == "" {
-		return "", errors.New("翻译结果不存在")
+		return "", fmt.Errorf("translation result not found, id: %s", taskID)
 	}
 
 	return task.ResultContent, nil

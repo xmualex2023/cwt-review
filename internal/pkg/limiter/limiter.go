@@ -8,7 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// RateLimiter Redis 实现的滑动窗口速率限制器
+// RateLimiter redis sliding window rate limiter
 type RateLimiter struct {
 	client      *redis.Client
 	maxRequests int64
@@ -23,19 +23,19 @@ func NewRateLimiter(client *redis.Client, maxRequests int64, duration time.Durat
 	}
 }
 
-// Allow 检查是否允许请求
+// Allow check if request is allowed
 func (l *RateLimiter) Allow(ctx context.Context, key string) (bool, error) {
 	now := time.Now().UnixNano()
 	windowStart := now - l.duration.Nanoseconds()
 
 	pipe := l.client.Pipeline()
-	// 移除时间窗口之前的请求
+	// remove requests before time window
 	pipe.ZRemRangeByScore(ctx, key, "0", fmt.Sprintf("%d", windowStart))
-	// 添加当前请求
+	// add current request
 	pipe.ZAdd(ctx, key, redis.Z{Score: float64(now), Member: now})
-	// 获取当前时间窗口内的请求数
+	// get current time window requests count
 	count := pipe.ZCard(ctx, key)
-	// 设置 key 的过期时间
+	// set key expiration time
 	pipe.Expire(ctx, key, l.duration)
 
 	_, err := pipe.Exec(ctx)

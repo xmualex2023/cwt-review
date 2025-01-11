@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// TranslationTask 翻译任务
+// TranslationTask translation task
 type TranslationTask struct {
 	ID            string    `json:"id"`
 	UserID        string    `json:"user_id"`

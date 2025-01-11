@@ -2,6 +2,7 @@ package redisdb
 
 import "github.com/redis/go-redis/v9"
 
+// TODO: 后续可以封装为接口
 // 这里封装了redis client 接口，方便其他模块使用
 
 type IRedisClient interface {

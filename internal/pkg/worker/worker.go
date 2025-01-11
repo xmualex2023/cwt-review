@@ -11,16 +11,16 @@ import (
 	"github.com/xmualex2023/i18n-translation/internal/pkg/queue"
 )
 
-// Handler 任务处理函数
+// Handler task handler function
 type Handler func(context.Context, queue.Task) error
 
-// Worker 工作器
+// Worker
 type Worker struct {
 	queue      queue.Queue
 	handler    Handler
 	stopChan   chan struct{}
 	wg         sync.WaitGroup
-	activeJobs int32 // 活跃任务数
+	activeJobs int32
 }
 
 func NewWorker(queue queue.Queue, handler Handler) *Worker {
@@ -31,7 +31,7 @@ func NewWorker(queue queue.Queue, handler Handler) *Worker {
 	}
 }
 
-// Start 启动工作器
+// Start start worker
 func (w *Worker) Start(workerCount int) {
 	for i := 0; i < workerCount; i++ {
 		w.wg.Add(1)
@@ -39,7 +39,7 @@ func (w *Worker) Start(workerCount int) {
 	}
 }
 
-// Stop 停止工作器
+// Stop stop worker
 func (w *Worker) Stop() {
 	close(w.stopChan)
 	w.wg.Wait()
@@ -58,11 +58,11 @@ func (w *Worker) run() {
 			cancel()
 
 			if err != nil {
-				log.Printf("从队列获取任务失败: %v", err)
+				log.Printf("failed to dequeue task, error: %v", err)
 				continue
 			}
 
-			// 更新活跃任务数
+			// update active jobs
 			atomic.AddInt32(&w.activeJobs, 1)
 			metrics.SetWorkerCount(int(atomic.LoadInt32(&w.activeJobs)))
 
@@ -70,16 +70,16 @@ func (w *Worker) run() {
 			err = w.handler(context.Background(), task)
 			duration := time.Since(start)
 
-			// 更新指标
+			// update metrics
 			status := "completed"
 			if err != nil {
 				status = "failed"
-				log.Printf("处理任务失败: %v", err)
+				log.Printf("failed to handle task, error: %v", err)
 			}
 			metrics.IncTaskCounter(status)
 			metrics.ObserveTaskDuration(status, duration)
 
-			// 减少活跃任务数
+			// decrease active jobs
 			atomic.AddInt32(&w.activeJobs, -1)
 			metrics.SetWorkerCount(int(atomic.LoadInt32(&w.activeJobs)))
 		}

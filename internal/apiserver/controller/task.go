@@ -8,7 +8,7 @@ import (
 	"github.com/xmualex2023/i18n-translation/internal/pkg/middleware"
 )
 
-// CreateTask 创建翻译任务
+// CreateTask create translation task
 func (c *Controller) CreateTask(ctx *gin.Context) {
 	var req model.CreateTaskRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -16,10 +16,10 @@ func (c *Controller) CreateTask(ctx *gin.Context) {
 		return
 	}
 
-	// 获取当前用户ID
+	// get current user id
 	claims, exists := middleware.GetCurrentUser(ctx)
 	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "未认证"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
@@ -32,7 +32,7 @@ func (c *Controller) CreateTask(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, resp)
 }
 
-// ExecuteTranslation 执行翻译
+// ExecuteTranslation execute translation
 func (c *Controller) ExecuteTranslation(ctx *gin.Context) {
 	taskID := ctx.Param("taskID")
 
@@ -41,10 +41,10 @@ func (c *Controller) ExecuteTranslation(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "翻译任务已开始执行"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "translation task started"})
 }
 
-// GetTaskStatus 获取任务状态
+// GetTaskStatus get task status
 func (c *Controller) GetTaskStatus(ctx *gin.Context) {
 	taskID := ctx.Param("taskID")
 
@@ -57,7 +57,7 @@ func (c *Controller) GetTaskStatus(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
-// DownloadTranslation 下载翻译结果
+// DownloadTranslation download translation result
 func (c *Controller) DownloadTranslation(ctx *gin.Context) {
 	taskID := ctx.Param("taskID")
 

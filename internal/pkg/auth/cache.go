@@ -10,17 +10,14 @@ import (
 )
 
 // TODO: 可以在当前基础上，再增加一层内存缓存（local cache）
-// TokenCache 令牌缓存接口
+// TokenCache token cache interface
 type TokenCache interface {
-	// Set 缓存令牌
 	Set(ctx context.Context, token string, claims *Claims) error
-	// Get 获取令牌信息
 	Get(ctx context.Context, token string) (*Claims, error)
-	// Delete 删除令牌
 	Delete(ctx context.Context, token string) error
 }
 
-// RedisTokenCache Redis 令牌缓存实现
+// RedisTokenCache Redis token cache
 type RedisTokenCache struct {
 	client        *redis.Client
 	keyPrefix     string

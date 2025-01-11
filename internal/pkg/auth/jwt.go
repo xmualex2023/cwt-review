@@ -19,7 +19,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// JWTMaker JWT 令牌生成器
+// JWTMaker JWT token maker
 type JWTMaker struct {
 	secretKey []byte
 	cache     TokenCache
@@ -32,7 +32,6 @@ func NewJWTMaker(secretKey string, cache TokenCache) *JWTMaker {
 	}
 }
 
-// CreateToken 创建令牌
 func (m *JWTMaker) CreateToken(ctx context.Context, userID primitive.ObjectID, duration time.Duration) (string, time.Time, error) {
 	expiresAt := time.Now().Add(duration)
 	claims := &Claims{
@@ -49,7 +48,7 @@ func (m *JWTMaker) CreateToken(ctx context.Context, userID primitive.ObjectID, d
 		return "", time.Time{}, err
 	}
 
-	// 缓存令牌
+	// cache token
 	if err := m.cache.Set(ctx, tokenString, claims); err != nil {
 		return "", time.Time{}, err
 	}
@@ -57,14 +56,11 @@ func (m *JWTMaker) CreateToken(ctx context.Context, userID primitive.ObjectID, d
 	return tokenString, expiresAt, nil
 }
 
-// VerifyToken 验证令牌
 func (m *JWTMaker) VerifyToken(ctx context.Context, tokenString string) (*Claims, error) {
-	// 首先从缓存中获取
 	if claims, err := m.cache.Get(ctx, tokenString); err == nil {
 		return claims, nil
 	}
 
-	// 缓存未命中，验证令牌
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, ErrInvalidToken
@@ -81,7 +77,6 @@ func (m *JWTMaker) VerifyToken(ctx context.Context, tokenString string) (*Claims
 		return nil, ErrInvalidToken
 	}
 
-	// 缓存验证通过的令牌
 	if err := m.cache.Set(ctx, tokenString, claims); err != nil {
 		return nil, err
 	}
@@ -89,14 +84,11 @@ func (m *JWTMaker) VerifyToken(ctx context.Context, tokenString string) (*Claims
 	return claims, nil
 }
 
-// RevokeToken 吊销令牌
 func (m *JWTMaker) RevokeToken(ctx context.Context, tokenString string) error {
 	return m.cache.Delete(ctx, tokenString)
 }
 
-// RefreshToken 刷新令牌
 func (m *JWTMaker) RefreshToken(ctx context.Context, oldToken string) (string, time.Time, error) {
-	// 验证旧令牌
 	claims, err := m.VerifyToken(ctx, oldToken)
 	if err != nil {
 		return "", time.Time{}, err
@@ -108,14 +100,12 @@ func (m *JWTMaker) RefreshToken(ctx context.Context, oldToken string) (string, t
 	threshold := expiry.Sub(claims.IssuedAt.Time) * 3 / 10
 
 	if now.Add(threshold).Before(expiry) {
-		return "", time.Time{}, errors.New("令牌尚未到达刷新时间")
+		return "", time.Time{}, errors.New("token is not expired")
 	}
 
-	// 吊销旧令牌
 	if err := m.RevokeToken(ctx, oldToken); err != nil {
 		return "", time.Time{}, err
 	}
 
-	// 创建新令牌
 	return m.CreateToken(ctx, claims.UserID, m.cache.(*RedisTokenCache).defaultExpiry)
 }

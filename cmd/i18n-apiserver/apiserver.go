@@ -113,7 +113,7 @@ func setupRouter(ctrl controller.IController, cfg *config.Config) *gin.Engine {
 		SkipPaths: []string{"/metrics"},
 		Formatter: func(param gin.LogFormatterParams) string {
 			keys := param.Keys
-			userID, ok := keys["userID"]
+			userID, ok := keys["user_id"]
 			if !ok {
 				userID = "unknown"
 			}
@@ -134,7 +134,7 @@ func setupRouter(ctrl controller.IController, cfg *config.Config) *gin.Engine {
 
 	prom, err := middleware.NewPrometheus(cfg)
 	if err != nil {
-		log.Fatalf("初始化 Prometheus 失败: %v", err)
+		log.Fatalf("failed to initialize prometheus: %v", err)
 	}
 	prom.RegisterCollector(metrics.CollectorVector...)
 	r.Use(prom.MetricsMiddleware())

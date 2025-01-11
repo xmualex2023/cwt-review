@@ -8,7 +8,7 @@ import (
 	"github.com/xmualex2023/i18n-translation/internal/apiserver/model"
 )
 
-// Register 用户注册
+// Register user register
 func (c *Controller) Register(ctx *gin.Context) {
 	var req model.RegisterRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -21,10 +21,10 @@ func (c *Controller) Register(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"message": "注册成功"})
+	ctx.JSON(http.StatusCreated, gin.H{"message": "register success"})
 }
 
-// Login 用户登录
+// Login user login
 func (c *Controller) Login(ctx *gin.Context) {
 	var req model.LoginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -41,12 +41,12 @@ func (c *Controller) Login(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
-// RefreshToken 刷新令牌
+// RefreshToken refresh token
 func (c *Controller) RefreshToken(ctx *gin.Context) {
-	// 从请求头获取旧令牌
+	// get old token from header
 	authHeader := ctx.GetHeader("Authorization")
 	if len(authHeader) < 7 || !strings.HasPrefix(authHeader, "Bearer ") {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "未提供有效的认证令牌"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "no valid auth token provided"})
 		return
 	}
 

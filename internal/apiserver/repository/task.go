@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/xmualex2023/i18n-translation/internal/apiserver/model"
@@ -12,7 +13,7 @@ import (
 
 const taskCollection = "tasks"
 
-// CreateTask 创建翻译任务
+// CreateTask create translation task
 func (r *Repository) CreateTask(ctx context.Context, task *model.Task) error {
 	task.CreatedAt = time.Now()
 	task.UpdatedAt = time.Now()
@@ -22,19 +23,20 @@ func (r *Repository) CreateTask(ctx context.Context, task *model.Task) error {
 	return err
 }
 
-// GetTask 获取任务信息
+// GetTask get task info
 func (r *Repository) GetTask(ctx context.Context, taskID primitive.ObjectID) (*model.Task, error) {
 	collection := r.db.Collection(taskCollection)
 
 	var task model.Task
 	err := collection.FindOne(ctx, bson.M{"_id": taskID}).Decode(&task)
 	if err == mongo.ErrNoDocuments {
-		return nil, nil
+		return nil, fmt.Errorf("task not found, id: %s", taskID.Hex())
 	}
 	return &task, err
 }
 
-// UpdateTask 更新任务状态
+// TODO: 这里可以优化，插入需要更新的字段即可
+// UpdateTask update task status
 func (r *Repository) UpdateTask(ctx context.Context, task *model.Task) error {
 	task.UpdatedAt = time.Now()
 

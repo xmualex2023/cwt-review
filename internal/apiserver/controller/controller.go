@@ -5,14 +5,14 @@ import (
 	"github.com/xmualex2023/i18n-translation/internal/apiserver/service"
 )
 
-// Controller 接口定义
+// Controller interface
 type IController interface {
-	// 用户相关
+	// user related
 	Register(ctx *gin.Context)
 	Login(ctx *gin.Context)
 	RefreshToken(ctx *gin.Context)
 
-	// 任务相关
+	// task related
 	CreateTask(ctx *gin.Context)
 	ExecuteTranslation(ctx *gin.Context)
 	GetTaskStatus(ctx *gin.Context)

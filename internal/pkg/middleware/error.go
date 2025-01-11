@@ -24,10 +24,10 @@ func ErrorHandler() gin.HandlerFunc {
 		switch err.Err {
 		case llm.ErrInvalidResponse:
 			httpCode = http.StatusBadGateway
-			message = "翻译服务响应无效"
+			message = "translation service response invalid"
 		case llm.ErrAPIError:
 			httpCode = http.StatusServiceUnavailable
-			message = "翻译服务暂时不可用"
+			message = "translation service temporarily unavailable"
 		default:
 			httpCode = http.StatusInternalServerError
 			message = err.Error()

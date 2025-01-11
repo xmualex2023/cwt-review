@@ -9,24 +9,24 @@ import (
 
 func RateLimiter(limiter *limiter.RateLimiter) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 获取用户标识，可以是用户ID或IP地址
+		// get user identifier, can be user id or ip address
 		userID := c.GetString("user_id")
 		if userID == "" {
 			userID = c.ClientIP()
 		}
 
-		// 构造限流 key
+		// construct rate limit key
 		key := "rate_limit:" + userID
 
 		allowed, err := limiter.Allow(c.Request.Context(), key)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "速率限制服务异常"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "rate limit service error"})
 			c.Abort()
 			return
 		}
 
 		if !allowed {
-			c.JSON(http.StatusTooManyRequests, gin.H{"error": "请求过于频繁，请稍后再试"})
+			c.JSON(http.StatusTooManyRequests, gin.H{"error": "request too frequent, please try again later"})
 			c.Abort()
 			return
 		}

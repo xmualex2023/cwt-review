@@ -16,9 +16,9 @@ const (
 
 func AuthMiddleware(maker *auth.JWTMaker) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if len(authHeader) < 7 || !strings.HasPrefix(authHeader, "Bearer ") {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "未提供有效的认证令牌"})
+		authHeader := c.GetHeader(authorizationHeaderKey)
+		if len(authHeader) < 7 || !strings.HasPrefix(authHeader, authorizationTypeBearer) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "no valid auth token provided"})
 			c.Abort()
 			return
 		}
@@ -26,12 +26,12 @@ func AuthMiddleware(maker *auth.JWTMaker) gin.HandlerFunc {
 		tokenString := authHeader[7:]
 		claims, err := maker.VerifyToken(c.Request.Context(), tokenString)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "无效的认证令牌"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid auth token"})
 			c.Abort()
 			return
 		}
 
-		// 将用户信息存储到上下文中
+		// store user info in context
 		c.Set("user_id", claims.UserID.Hex())
 		c.Set("claims", claims)
 
@@ -39,7 +39,7 @@ func AuthMiddleware(maker *auth.JWTMaker) gin.HandlerFunc {
 	}
 }
 
-// GetCurrentUser 获取当前用户ID
+// GetCurrentUser get current user id
 func GetCurrentUser(ctx *gin.Context) (*auth.Claims, bool) {
 	payload, exists := ctx.Get(authorizationPayloadKey)
 	if !exists {

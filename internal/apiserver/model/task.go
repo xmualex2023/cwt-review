@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// TaskStatus 任务状态
+// TaskStatus task status
 type TaskStatus string
 
 const (
@@ -16,7 +16,7 @@ const (
 	TaskStatusFailed     TaskStatus = "failed"     // 失败
 )
 
-// Task 翻译任务模型
+// Task translation task model
 type Task struct {
 	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	UserID        primitive.ObjectID `bson:"user_id" json:"user_id"`
@@ -30,14 +30,14 @@ type Task struct {
 	UpdatedAt     time.Time          `bson:"updated_at" json:"updated_at"`
 }
 
-// CreateTaskRequest 创建任务请求
+// CreateTaskRequest create task request
 type CreateTaskRequest struct {
 	SourceLang    string `json:"source_lang" binding:"required"`
 	TargetLang    string `json:"target_lang" binding:"required"`
 	SourceContent string `json:"source_content" binding:"required"`
 }
 
-// TaskResponse 任务响应
+// TaskResponse task response
 type TaskResponse struct {
 	ID        string     `json:"id"`
 	Status    TaskStatus `json:"status"`
