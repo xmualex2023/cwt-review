@@ -34,22 +34,18 @@ var (
 func main() {
 	flag.Parse()
 
-	// 加载配置
 	cfg, err := config.Load(*configPath)
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	// 设置运行模式
 	gin.SetMode(cfg.Server.Mode)
 
-	// 初始化数据库连接
 	repo, err := repository.NewRepository(cfg)
 	if err != nil {
 		log.Fatalf("failed to initialize storage layer: %v", err)
 	}
 
-	// 初始化 LLM 客户端
 	llmClient := llm.NewClient(cfg.LLM.APIKey, cfg.LLM.Endpoint)
 
 	// initialize redis client

@@ -128,7 +128,7 @@ func DefaultConfig() *Config {
 			PushIntervalSec: 15,
 			URL:             "http://localhost:9091",
 			Instance:        "default",
-			Job:             "myapp",
+			Job:             "i18n-apiserver",
 			Buckets:         []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10},
 		},
 		RateLimit: struct {
