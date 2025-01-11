@@ -1,0 +1,48 @@
+# API 服务器配置
+server:
+  mode: debug  # 运行模式：debug/release
+  http:
+    address: :8080
+    timeout: 30s
+
+# MongoDB 配置
+mongodb:
+  uri: mongodb://localhost:27017
+  database: i18n_translation
+  timeout: 10s
+  pool_size: 100
+
+# Redis 配置
+redis:
+  addr: localhost:6379
+  password: ""
+  db: 0
+
+# JWT 配置
+jwt:
+  secret: your-secret-key  # 请修改为安全的密钥
+  expire: 24h  # 令牌过期时间
+  refresh: 72h # 刷新令牌时间
+
+# 速率限制配置
+rate_limit:
+  max_requests: 100  # 每个时间窗口的最大请求数
+  duration: 1h      # 时间窗口大小
+
+# LLM API 配置
+llm:
+  api_key: your-openai-api-key  # OpenAI API 密钥
+  endpoint: https://api.openai.com  # API 端点
+  model: gpt-3.5-turbo  # 使用的模型
+  timeout: 30s  # 请求超时时间
+
+# 工作器配置
+worker:
+  count: 5  # 工作器数量
+  batch_size: 10  # 批处理大小
+  timeout: 30s  # 任务超时时间
+
+# 监控配置
+metrics:
+  enabled: true
+  path: /metrics 

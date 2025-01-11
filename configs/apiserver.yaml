@@ -1,0 +1,29 @@
+server:
+  mode: debug
+  http:
+    address: 0.0.0.0:8080
+    timeout: 10s
+  
+mongodb:
+  uri: mongodb://localhost:27017
+  database: i18n_translation
+
+redis:
+  addr: localhost:6379
+  password: ""
+  db: 0
+
+jwt:
+  secret: your-secret-key
+  expire: 24h
+
+llm:
+  api_key: your-api-key
+  endpoint: https://api.openai.com/v1 
+
+rate_limit:
+  max_requests: 1000    # 每个时间窗口允许的最大请求数
+  duration: 60s        # 时间窗口大小 
+
+worker:
+  count: 5 # 工作器数量

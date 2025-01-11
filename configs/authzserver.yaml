@@ -1,0 +1,18 @@
+server:
+  mode: debug
+  http:
+    address: 0.0.0.0:8081
+    timeout: 10s
+
+mongodb:
+  uri: mongodb://localhost:27017
+  database: i18n_translation
+
+redis:
+  addr: localhost:6379
+  password: ""
+  db: 0
+
+jwt:
+  secret: your-secret-key
+  expire: 24h 
