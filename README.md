@@ -158,14 +158,3 @@ go test ./...
 make build
 ```
 
-## 贡献指南
-
-1. Fork 本仓库
-2. 创建特性分支
-3. 提交变更
-4. 推送到分支
-5. 创建 Pull Request
-
-## 许可证
-
-MIT License

@@ -27,7 +27,7 @@ jwt:
 # 速率限制配置
 rate_limit:
   max_requests: 100  # 每个时间窗口的最大请求数
-  duration: 1h      # 时间窗口大小
+  duration: 60s      # 时间窗口大小
 
 # LLM API 配置
 llm:
@@ -39,8 +39,6 @@ llm:
 # 工作器配置
 worker:
   count: 5  # 工作器数量
-  batch_size: 10  # 批处理大小
-  timeout: 30s  # 任务超时时间
 
 # 监控配置
 metrics:
